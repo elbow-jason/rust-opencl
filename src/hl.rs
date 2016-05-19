@@ -702,22 +702,19 @@ scalar_kernel_arg!(i32);
 scalar_kernel_arg!(i64);
 scalar_kernel_arg!(f32);
 scalar_kernel_arg!(f64);
+
+scalar_kernel_arg!([i32; 2]);
+scalar_kernel_arg!([i64; 2]);
+scalar_kernel_arg!([u32; 2]);
+scalar_kernel_arg!([u64; 2]);
 scalar_kernel_arg!([f32; 2]);
 scalar_kernel_arg!([f64; 2]);
-
-impl<T: Copy> KernelArg for Vec<T> {
-    fn get_value(&self) -> (libc::size_t, *const libc::c_void) {
-        ((self.len() * mem::size_of::<T>()) as libc::size_t,
-          (self.as_ptr()) as *const libc::c_void)
-    }
-}
-
-impl<'a, T: Copy> KernelArg for &'a [T] {
-    fn get_value(&self) -> (libc::size_t, *const libc::c_void) {
-        ((self.len() * mem::size_of::<T>()) as libc::size_t,
-          (self.as_ptr()) as *const libc::c_void)
-    }
-}
+scalar_kernel_arg!([i32; 4]);
+scalar_kernel_arg!([i64; 4]);
+scalar_kernel_arg!([u32; 4]);
+scalar_kernel_arg!([u64; 4]);
+scalar_kernel_arg!([f32; 4]);
+scalar_kernel_arg!([f64; 4]);
 
 impl KernelArg for [f32; 3] {
     fn get_value(&self) -> (libc::size_t, *const libc::c_void) {
