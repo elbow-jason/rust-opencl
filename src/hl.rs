@@ -934,3 +934,21 @@ impl KernelIndex for (usize, usize, usize)
         (self as *const (usize, usize, usize)) as *const libc::size_t
     }
 }
+
+impl KernelIndex for [usize; 2]
+{
+    fn num_dimensions() -> cl_uint { 2 }
+
+    fn get_ptr(&self) -> *const libc::size_t {
+        (self as *const [usize; 2]) as *const libc::size_t
+    }
+}
+
+impl KernelIndex for [usize; 3]
+{
+    fn num_dimensions() -> cl_uint { 3 }
+
+    fn get_ptr(&self) -> *const libc::size_t {
+        (self as *const [usize; 3]) as *const libc::size_t
+    }
+}
