@@ -10,6 +10,8 @@ use std::ops::Deref;
 use std::ptr;
 use std::string::String;
 use std::vec::Vec;
+use std::rc::Rc;
+use std::cell::Ref;
 
 use cl;
 use cl::*;
@@ -850,7 +852,22 @@ impl<'r> EventList for &'r [Event] {
     }
 }
 
-impl<'r, D: Deref<Target=Event>> EventList for &'r [Option<D>] {
+/*impl<'r, D: Deref<Target=Event>> EventList for &'r [Option<D>] {
+    fn as_event_list<T, F>(&self, f: F) -> T
+        where F: FnOnce(*const cl_event, cl_uint) -> T
+    {
+        let mut vec: Vec<cl_event> = Vec::with_capacity(self.len());
+        for item in self.iter() {
+            if let Some(ref item) = *item {
+                vec.push(item.event);
+            }
+        }
+
+        f(vec.as_ptr(), vec.len() as cl_uint)
+    }
+}*/
+
+impl<'r, 's> EventList for &'r [Option<Ref<'s, Rc<Event>>>] {
     fn as_event_list<T, F>(&self, f: F) -> T
         where F: FnOnce(*const cl_event, cl_uint) -> T
     {
