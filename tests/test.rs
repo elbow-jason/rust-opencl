@@ -1,5 +1,3 @@
-#![feature(slice_bytes)]
-
 #[macro_use]
 extern crate log;
 

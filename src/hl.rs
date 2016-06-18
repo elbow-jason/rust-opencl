@@ -762,6 +762,16 @@ pub struct Event
 }
 
 impl Event {
+    pub fn new_complete(ctx: &Context) -> Event {
+        let mut error_code: cl_int = 0;
+        let e: cl_event = unsafe { clCreateUserEvent(ctx.ctx, &mut error_code) };
+        check(error_code, "Error creating user event");
+
+        unsafe { clSetUserEventStatus(e, CL_COMPLETE as i32); }
+
+        Event { event: e }
+    }
+
     fn get_time(&self, param: cl_uint) -> u64
     {
         unsafe {
