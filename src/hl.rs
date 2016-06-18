@@ -444,7 +444,7 @@ impl CommandQueue
                     },
                     event_list_length,
                     event_list,
-                    (&mut e));
+                    &mut e);
                 check(status, "Error enqueuing kernel.");
                 status = clFinish(self.cqueue);
                 check(status, "Error finishing kernel.");
@@ -483,7 +483,7 @@ impl CommandQueue
                     },
                     event_list_length,
                     event_list,
-                    (&mut e));
+                    &mut e);
                 check(status, "Error enqueuing kernel.");
                 Event { event: e }
             })
@@ -532,13 +532,14 @@ impl CommandQueue
         }
     }
 
-    pub fn write_async<U: Write, T, E: EventList, B: Buffer<T>>(&self, mem: &B, write: &U, event: E) -> Event
+    pub fn write_async<U: Write, T, E: EventList, B: Buffer<T>>(&self, ctx: &Context, mem: &B, write: &U, event: E) -> Event
     {
-        let mut out_event = None;
         unsafe {
+            let mut error_code: cl_int = 0;
+            let mut e: cl_event = clCreateUserEvent(ctx.ctx, &mut error_code);
+            check(error_code, "Error creating user event for buffer write");
             event.as_event_list(|evt, evt_len| {
                 write.write(|offset, p, len| {
-                    let mut e: cl_event = ptr::null_mut();
                     let err = clEnqueueWriteBuffer(self.cqueue,
                                                    mem.id(),
                                                    CL_FALSE,
@@ -548,12 +549,11 @@ impl CommandQueue
                                                    evt_len,
                                                    evt,
                                                    &mut e);
-                    out_event = Some(e);
                     check(err, "Failed to write buffer");
                 })
-            })
+            });
+            Event { event: e }
         }
-        Event { event: out_event.unwrap() }
     }
 
     pub fn read<T, U: Read, E: EventList, B: Buffer<T>>(&self, mem: &B, read: &mut U, event: E)
