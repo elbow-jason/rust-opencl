@@ -64,7 +64,7 @@ mod mem {
             unsafe {
                 let ptr = ptr as *const u8;
                 let src = slice::from_raw_parts(ptr, len);
-                slice::bytes::copy_memory(src, target);
+                target.copy_from_slice(src);
             }
         });
 
@@ -77,7 +77,7 @@ mod mem {
             unsafe {
                 let ptr = ptr as *mut u8;
                 let mut dst = slice::from_raw_parts_mut(ptr, len);
-                slice::bytes::copy_memory(src, dst);
+                dst.copy_from_slice(src);
             }
         })
     }
