@@ -436,7 +436,6 @@ pub mod ll {
   use cl::*;
   use libc;
 
-  #[link(name="opencl")]
   extern
   {
     /* Platform APIs */
