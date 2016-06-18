@@ -160,7 +160,7 @@ mod hl {
 
             k.set_arg(0, &v);
 
-            queue.enqueue_async_kernel(&k, 1isize, None, ()).wait();
+            queue.enqueue_async_kernel(&ctx, &k, 1isize, None, ()).wait();
 
             let v: Vec<isize> = queue.get(&v, ());
 
@@ -185,7 +185,7 @@ mod hl {
             k.set_arg(0, &v);
             k.set_arg(1, &42isize);
 
-            queue.enqueue_async_kernel(&k, 1isize, None, ()).wait();
+            queue.enqueue_async_kernel(&ctx, &k, 1isize, None, ()).wait();
 
             let v: Vec<isize> = queue.get(&v, ());
 
@@ -209,7 +209,7 @@ mod hl {
 
             k.set_arg(0, &v);
 
-            queue.enqueue_async_kernel(&k, 1isize, None, ()).wait();
+            queue.enqueue_async_kernel(&ctx, &k, 1isize, None, ()).wait();
 
             let v: Vec<isize> = queue.get(&v, ());
 
@@ -234,7 +234,7 @@ mod hl {
 
             let mut e : Option<Event> = None;
             for _ in 0isize .. 8 {
-                e = Some(queue.enqueue_async_kernel(&k, 1isize, None, e));
+                e = Some(queue.enqueue_async_kernel(&ctx, &k, 1isize, None, e));
             }
             e.wait();
 
@@ -269,15 +269,15 @@ mod hl {
             k_inc_b.set_arg(0, &b);
 
             let event_list = [
-                queue.enqueue_async_kernel(&k_inc_a, 1isize, None, ()),
-                queue.enqueue_async_kernel(&k_inc_b, 1isize, None, ()),
+                queue.enqueue_async_kernel(&ctx, &k_inc_a, 1isize, None, ()),
+                queue.enqueue_async_kernel(&ctx, &k_inc_b, 1isize, None, ()),
             ];
 
             k_add.set_arg(0, &a);
             k_add.set_arg(1, &b);
             k_add.set_arg(2, &c);
 
-            let event = queue.enqueue_async_kernel(&k_add, 1isize, None, &event_list[..]);
+            let event = queue.enqueue_async_kernel(&ctx, &k_add, 1isize, None, &event_list[..]);
 
             let v: Vec<isize> = queue.get(&c, event);
 
@@ -312,7 +312,7 @@ mod hl {
 
             k.set_arg(0, &v);
 
-            queue.enqueue_async_kernel(&k, (3isize, 3isize), None, ()).wait();
+            queue.enqueue_async_kernel(&ctx, &k, (3isize, 3isize), None, ()).wait();
 
             let v: Vec<isize> = queue.get(&v, ());
 
@@ -385,7 +385,7 @@ mod hl {
 
         k.set_arg(0, &v);
 
-        let e = queue.enqueue_async_kernel(&k, 1isize, None, ());
+        let e = queue.enqueue_async_kernel(&ctx, &k, 1isize, None, ());
         e.wait();
 
         // the that are returned are not useful for unit test, this test
@@ -469,7 +469,7 @@ mod array {
             let k = prog.create_kernel("test");
 
             k.set_arg(0, &a_cl);
-            let event = queue.enqueue_async_kernel(&k, (8isize, 8isize), None, ());
+            let event = queue.enqueue_async_kernel(&ctx, &k, (8isize, 8isize), None, ());
             queue.read(&a_cl, &mut a, &event);
 
             for x in 0usize .. 8usize {
@@ -508,7 +508,7 @@ mod array {
 
             k.set_arg(0, &a_cl);
             k.set_arg(1, &a.width());
-            let event = queue.enqueue_async_kernel(&k, Some((3, 3)), (5isize, 5isize), None, ());
+            let event = queue.enqueue_async_kernel(&ctx, &k, Some((3, 3)), (5isize, 5isize), None, ());
             queue.read(&a_cl, &mut a, &event);
 
             println!("");
@@ -599,7 +599,7 @@ mod array {
             let k = prog.create_kernel("test");
 
             k.set_arg(0, &a_cl);
-            let event = queue.enqueue_async_kernel(&k, (8isize, 8isize, 8isize), None, ());
+            let event = queue.enqueue_async_kernel(&ctx, &k, (8isize, 8isize, 8isize), None, ());
             queue.read(&a_cl, &mut a, &event);
 
             for x in 0usize .. 8usize {

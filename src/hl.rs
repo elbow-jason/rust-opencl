@@ -416,6 +416,7 @@ impl CommandQueue
 {
     //synchronous
     pub fn enqueue_kernel<I: KernelIndex, E: EventList>(&self,
+                                                        ctx: &Context,
                                                         k: &Kernel,
                                                         //global_offset: Option<I>,
                                                         global: I,
@@ -426,7 +427,10 @@ impl CommandQueue
         unsafe
         {
             wait_on.as_event_list(|event_list, event_list_length| {
-                let mut e: cl_event = ptr::null_mut();
+                let mut error_code: cl_int = 0;
+                let mut e: cl_event = clCreateUserEvent(ctx.ctx, &mut error_code);
+                check(error_code, "Error creating user event for kernel enqueue");
+                //let mut e: cl_event = ptr::null_mut();
                 let mut status = clEnqueueNDRangeKernel(
                     self.cqueue,
                     k.kernel,
@@ -451,6 +455,7 @@ impl CommandQueue
 
     //asynchronous
     pub fn enqueue_async_kernel<I: KernelIndex, E: EventList>(&self,
+                                                              ctx: &Context,
                                                               k: &Kernel,
                                                               //global_offset: Option<I>,
                                                               global: I,
@@ -461,7 +466,10 @@ impl CommandQueue
         unsafe
         {
             wait_on.as_event_list(|event_list, event_list_length| {
-                let mut e: cl_event = ptr::null_mut();
+                let mut error_code: cl_int = 0;
+                let mut e: cl_event = clCreateUserEvent(ctx.ctx, &mut error_code);
+                check(error_code, "Error creating user event for kernel enqueue");
+                //let mut e: cl_event = ptr::null_mut();
                 let status = clEnqueueNDRangeKernel(
                     self.cqueue,
                     k.kernel,
