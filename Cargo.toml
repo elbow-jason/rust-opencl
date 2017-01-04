@@ -1,21 +1,16 @@
 [package]
-name = "opencl"
-version = "0.3.0-dev"
-authors = [ "Colin Sherratt <colin.sherratt@gmail.com>",
-            "Eric Holk <eholk@cs.indiana.edu>",
-            "Ian Daniher <it.daniher@gmail.com>",
-            "Luqman Aden <me@luqman.ca>",
-            "Milinda Pathirage <milinda.pathirage@gmail.com>",
-            "Sébastien Crozet <developer@crozet.re>",
-            "Mathijs Henquet <mathijs.henquet@gmail.com>"
-          ]
-repository = "https://github.com/luqmana/rust-opencl"
-license = "MIT/Apache-2.0"
+authors = ["Colin Sherratt <colin.sherratt@gmail.com>", "Eric Holk <eholk@cs.indiana.edu>", "Ian Daniher <it.daniher@gmail.com>", "Luqman Aden <me@luqman.ca>", "Milinda Pathirage <milinda.pathirage@gmail.com>", "Sébastien Crozet <developer@crozet.re>", "Mathijs Henquet <mathijs.henquet@gmail.com>"]
 description = "OpenCL bindings for Rust."
 keywords = ["opencl", "bindings", "ffi", "gpu", "compute"]
-
-[lib]
+license = "MIT/Apache-2.0"
 name = "opencl"
+repository = "https://github.com/luqmana/rust-opencl"
+version = "0.3.0-dev"
+
+[dependencies]
+lazy_static = "0.2.2"
+libc = "^0.1.8"
+log = "^0.3.1"
 
 [[example]]
 name = "demo"
@@ -25,6 +20,5 @@ path = "examples/demo/main.rs"
 name = "platform"
 path = "examples/platform/main.rs"
 
-[dependencies]
-log = "^0.3.1"
-libc = "^0.1.8"
+[lib]
+name = "opencl"
