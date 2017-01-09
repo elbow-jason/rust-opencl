@@ -2,8 +2,7 @@
 
 use hl::*;
 
-pub fn create_compute_context() -> Result<(Device, Context, CommandQueue), &'static str>
-{
+pub fn create_compute_context() -> Result<(Device, Context, CommandQueue), &'static str> {
     let platforms = get_platforms();
     if platforms.len() == 0 {
         return Err("No platform found");
@@ -31,14 +30,16 @@ pub enum PreferedType {
     GPUOnly,
 }
 
-pub fn create_compute_context_prefer(cltype: PreferedType) -> Result<(Device, Context, CommandQueue), &'static str>
-{
+pub fn create_compute_context_prefer(cltype: PreferedType)
+                                     -> Result<(Device, Context, CommandQueue), &'static str> {
     let platforms = get_platforms();
     for platform in platforms.iter() {
         let types = match cltype {
             PreferedType::Any => vec![DeviceType::CPU, DeviceType::GPU],
-            PreferedType::CPUPrefered | PreferedType::CPUOnly => vec![DeviceType::CPU],
-            PreferedType::GPUPrefered | PreferedType::GPUOnly => vec![DeviceType::GPU]
+            PreferedType::CPUPrefered |
+            PreferedType::CPUOnly => vec![DeviceType::CPU],
+            PreferedType::GPUPrefered |
+            PreferedType::GPUOnly => vec![DeviceType::GPU],
         };
 
         let mut devices = platform.get_devices_by_types(&types[..]);
@@ -46,7 +47,7 @@ pub fn create_compute_context_prefer(cltype: PreferedType) -> Result<(Device, Co
             let device = devices.remove(0);
             let context = device.create_context();
             let queue = context.create_command_queue(&device);
-            return Ok((device, context, queue))
+            return Ok((device, context, queue));
         }
     }
 
@@ -55,6 +56,6 @@ pub fn create_compute_context_prefer(cltype: PreferedType) -> Result<(Device, Co
         PreferedType::Any |
         PreferedType::CPUPrefered |
         PreferedType::GPUPrefered => create_compute_context(),
-        _ => Err("Could not find valid implementation")
+        _ => Err("Could not find valid implementation"),
     }
 }

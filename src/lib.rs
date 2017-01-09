@@ -2,21 +2,21 @@
 #![allow(missing_copy_implementations)]
 #![allow(non_upper_case_globals)]
 
-#![feature(static_mutex)]
-
 //! OpenCL bindings for Rust.
 
+#[macro_use]
+extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate log;
 
 #[link(name = "OpenCL", kind = "framework")]
 #[cfg(target_os = "macos")]
-extern { }
+extern "C" {}
 
 #[link(name = "OpenCL")]
 #[cfg(target_os = "linux")]
-extern { }
+extern "C" {}
 
 /// Low-level OpenCL bindings. These should primarily be used by the
 /// higher level features in this library.

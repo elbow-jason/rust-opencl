@@ -1,30 +1,27 @@
 //! High level buffer management.
 
-use libc::{size_t, c_void};
-use std::marker::{PhantomData};
-use std::mem;
-use std::ptr;
-use std::vec::Vec;
 
 use cl::*;
 use cl::ll::*;
+use error::check;
 
 use hl::KernelArg;
-use error::check;
+use libc::{c_void, size_t};
+use std::marker::PhantomData;
+use std::mem;
+use std::ptr;
+use std::vec::Vec;
 
 pub trait Buffer<T> {
     unsafe fn id_ptr(&self) -> *const cl_mem;
 
     fn id(&self) -> cl_mem {
-        unsafe {
-            *self.id_ptr()
-        }
+        unsafe { *self.id_ptr() }
     }
 
-    fn byte_len(&self) -> size_t
-    {
+    fn byte_len(&self) -> size_t {
         unsafe {
-            let mut size : size_t = 0;
+            let mut size: size_t = 0;
             let err = clGetMemObjectInfo(self.id(),
                                          CL_MEM_SIZE,
                                          mem::size_of::<size_t>() as size_t,
@@ -36,7 +33,9 @@ pub trait Buffer<T> {
         }
     }
 
-    fn len(&self) -> usize { self.byte_len() as usize / mem::size_of::<T>() }
+    fn len(&self) -> usize {
+        self.byte_len() as usize / mem::size_of::<T>()
+    }
 }
 
 pub struct CLBuffer<T> {
@@ -53,33 +52,27 @@ impl<T> Drop for CLBuffer<T> {
 }
 
 impl<T> Buffer<T> for CLBuffer<T> {
-    unsafe fn id_ptr(&self) -> *const cl_mem
-    {
+    unsafe fn id_ptr(&self) -> *const cl_mem {
         &self.cl_buffer as *const cl_mem
     }
 }
 
 impl<T> KernelArg for CLBuffer<T> {
-    fn get_value(&self) -> (size_t, *const c_void)
-    {
-        unsafe {
-            (mem::size_of::<cl_mem>() as size_t,
-             self.id_ptr() as *const c_void)
-        }
+    fn get_value(&self) -> (size_t, *const c_void) {
+        unsafe { (mem::size_of::<cl_mem>() as size_t, self.id_ptr() as *const c_void) }
     }
 }
 
-/* memory life cycle
- * | Trait  | Exists in rust | Exists in OpenCL | Direction      |
- * | Put    | X              |                  | rust -> opencl |
- * | Get    |                | X                | opencl -> rust |
- * | Write  | X              | X                | rust -> opencl |
- * | Read   | X              | X                | opencl -> rust |
- *mut */
+// memory life cycle
+// | Trait  | Exists in rust | Exists in OpenCL | Direction      |
+// | Put    | X              |                  | rust -> opencl |
+// | Get    |                | X                | opencl -> rust |
+// | Write  | X              | X                | rust -> opencl |
+// | Read   | X              | X                | opencl -> rust |
+// mut
 
 pub trait Put<T, B> {
-    fn put<F>(&self, F) -> B
-        where F: FnOnce(*const c_void, size_t) -> cl_mem;
+    fn put<F>(&self, F) -> B where F: FnOnce(*const c_void, size_t) -> cl_mem;
 }
 
 pub trait Get<B, T> {
@@ -94,8 +87,7 @@ pub trait Read {
     fn read<F: FnOnce(size_t, *mut c_void, size_t)>(&mut self, F);
 }
 
-impl<'r, T> Put<T, CLBuffer<T>> for &'r [T]
-{
+impl<'r, T> Put<T, CLBuffer<T>> for &'r [T] {
     fn put<F>(&self, f: F) -> CLBuffer<T>
         where F: FnOnce(*const c_void, size_t) -> cl_mem
     {
@@ -107,32 +99,31 @@ impl<'r, T> Put<T, CLBuffer<T>> for &'r [T]
     }
 }
 
-impl<'r, T> Put<T, CLBuffer<T>> for &'r Vec<T>
-{
+impl<'r, T> Put<T, CLBuffer<T>> for &'r Vec<T> {
     fn put<F>(&self, f: F) -> CLBuffer<T>
         where F: FnOnce(*const c_void, size_t) -> cl_mem
     {
         CLBuffer {
-            cl_buffer: f(self.as_ptr() as *const c_void, (self.len() * mem::size_of::<T>()) as size_t),
+            cl_buffer: f(self.as_ptr() as *const c_void,
+                         (self.len() * mem::size_of::<T>()) as size_t),
             phantom: PhantomData,
         }
     }
 }
 
-impl<T> Put<T, CLBuffer<T>> for Vec<T>
-{
+impl<T> Put<T, CLBuffer<T>> for Vec<T> {
     fn put<F>(&self, f: F) -> CLBuffer<T>
         where F: FnOnce(*const c_void, size_t) -> cl_mem
     {
         CLBuffer {
-            cl_buffer: f(self.as_ptr() as *const c_void, (self.len() * mem::size_of::<T>()) as size_t),
+            cl_buffer: f(self.as_ptr() as *const c_void,
+                         (self.len() * mem::size_of::<T>()) as size_t),
             phantom: PhantomData,
         }
     }
 }
 
-impl<T> Get<CLBuffer<T>, T> for Vec<T>
-{
+impl<T> Get<CLBuffer<T>, T> for Vec<T> {
     fn get<F>(mem: &CLBuffer<T>, f: F) -> Vec<T>
         where F: FnOnce(size_t, *mut c_void, size_t)
     {
@@ -140,22 +131,24 @@ impl<T> Get<CLBuffer<T>, T> for Vec<T>
         unsafe {
             v.set_len(mem.len());
         }
-        f(0, v.as_ptr() as *mut c_void, (v.len() * mem::size_of::<T>()) as size_t);
+        f(0,
+          v.as_ptr() as *mut c_void,
+          (v.len() * mem::size_of::<T>()) as size_t);
         v
     }
 }
 
-impl<'r, T> Write for &'r [T]
-{
+impl<'r, T> Write for &'r [T] {
     fn write<F>(&self, f: F)
         where F: FnOnce(size_t, *const c_void, size_t)
     {
-        f(0, self.as_ptr() as *const c_void, (self.len() * mem::size_of::<T>()) as size_t)
+        f(0,
+          self.as_ptr() as *const c_void,
+          (self.len() * mem::size_of::<T>()) as size_t)
     }
 }
 
-impl<'r, T> Read for &'r mut [T]
-{
+impl<'r, T> Read for &'r mut [T] {
     fn read<F>(&mut self, f: F)
         where F: FnOnce(size_t, *mut c_void, size_t)
     {
